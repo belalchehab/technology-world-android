@@ -2,7 +2,10 @@ package com.technologyworld.app;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
@@ -32,7 +35,12 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                view.loadUrl(request.getUrl().toString());
+                Uri destination = request.getUrl();
+                if (isTechnologyWorldPage(destination)) {
+                    view.loadUrl(destination.toString());
+                } else {
+                    openExternalApp(destination, view);
+                }
                 return true;
             }
         });
@@ -58,6 +66,19 @@ public class MainActivity extends Activity {
             webView.goBack();
         } else {
             super.onBackPressed();
+        }
+    }
+
+    private boolean isTechnologyWorldPage(Uri uri) {
+        return "https".equalsIgnoreCase(uri.getScheme())
+                && "belalchehab.github.io".equalsIgnoreCase(uri.getHost());
+    }
+
+    private void openExternalApp(Uri destination, WebView fallbackView) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, destination));
+        } catch (ActivityNotFoundException exception) {
+            fallbackView.loadUrl(destination.toString());
         }
     }
 }
